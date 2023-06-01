@@ -20,33 +20,6 @@ class InstructeurModel
         return $this->db->resultSet();
     }
 
-    // public function getGegevensInstructeur()
-    // {
-    //     $sql = "SELECT ty.typeVoertuig, vo.Type, vo.Kenteken, vo.Bouwjaar, vo.Brandstof, ty.RijbewijsCategorie
-    //             from instructeur ins
-    //             left join voertuiginstructeur voins
-    //             on ins.Id = voins.Id
-    //             left join voertuig vo
-    //             on vo.Id = ins.Id
-    //             left join typevoertuig ty
-    //             on ty.Id = vo.typevoertuigId
-    //             where ins.Id = 1";
-
-    //     $this->db->query($sql);
-
-    //     return $this->db->resultSet();
-    // }
-
-    // public function getLizhan(){
-    //     $sql = "SELECT * 
-    //     FROM instructeur
-    //     where Id = 1";
-
-    //     $this->db->query($sql);
-
-    //     return $this->db->resultSet();
-    // }
-
     public function getInstructeurInfoById($instructeurId)
     {
         $sql = "SELECT INST.Voornaam
@@ -80,6 +53,30 @@ class InstructeurModel
                 WHERE VOIN.InstructeurId = $instructeurId
                 
                 ORDER BY TYVO.RijbewijsCategorie ASC";
+
+        $this->db->query($sql);
+
+        return $this->db->resultSet();
+    }
+
+    public function getUnassignedVehicles()
+    {
+        $sql = "SELECT TypeVoertuig.TypeVoertuig, Type, Voertuig.Id as Id, Voertuig.Kenteken, Voertuig.Bouwjaar, Voertuig.Brandstof, TypeVoertuig.Rijbewijscategorie
+        FROM Voertuig
+        LEFT JOIN VoertuigInstructeur ON Voertuig.Id = VoertuigInstructeur.VoertuigId
+        LEFT JOIN TypeVoertuig ON Voertuig.TypeVoertuigId = TypeVoertuig.Id
+        WHERE VoertuigInstructeur.Id IS NULL;
+        ";
+
+        $this->db->query($sql);
+
+        return $this->db->resultSet();
+    }
+
+    public function assignVehicleToInstructor($instructeurId, $vehicleId)
+    {
+        $sql = "INSERT INTO VoertuigInstructeur (VoertuigId, InstructeurId, DatumToekening, DatumAangemaakt, DatumGewijzigd)
+        VALUES ($vehicleId, $instructeurId, CURRENT_DATE, CURRENT_DATE, CURRENT_DATE);";
 
         $this->db->query($sql);
 
