@@ -68,7 +68,6 @@ class Instructeur extends BaseController
         $tableRows = "";
 
         foreach ($assignedVehicles as $vehicles) {
-            $date = date_format(date_create($vehicles->Bouwjaar), 'd-m-Y');
             $tableRows .= "<tr>
                                 <td>$vehicles->TypeVoertuig</td>
                                 <td>$vehicles->Type</td>
@@ -80,36 +79,49 @@ class Instructeur extends BaseController
         }
 
 
-        /**
-         * Maak de rows voor de tbody in de view
-         */
-        // $tableRows = '';
+        $data = [
+            'title'         => 'Door instructeur gebruikte voertuigen',
+            'voornaam'      => $instructeur->Voornaam,
+            'tussenvoegsel' => $instructeur->Tussenvoegsel,
+            'achternaam'    => $instructeur->Achternaam,
+            'datumInDienst'    => $instructeur->DatumInDienst,
+            'aantalSterren' => $instructeur->Aantalsterren,
+            'tableRows' => $tableRows,
+            'instructeurId' => $instructeurId
+        ];
+        $this->view('Instructeur/gebruikteVoertuigen', $data);
+    }
 
-        // foreach ($infoInstructeur as $info) {
-        //     $datum = date_create($info->Bouwjaar);
-        //     $datum = date_format($datum, 'd-m-Y'); 
-        //     $tableRows .=  "<tr>
-        //                         <td>$info->typeVoertuig</td>
-        //                         <td>$info->Type</td>
-        //                         <td>$info->Kenteken</td>
-        //                         <td>$datum</td>
-        //                         <td>$info->Brandstof</td>
-        //                         <td>$info->RijbewijsCategorie</td>
-        //                     </tr>";
-        // }
+    public function toevoegen($instructeurId)
+    {
 
-        // $naamDatumSterren = $this->instructeurModel->getLizhan();
+        // Haal de info van de instructeur op uit de database (model)
 
-        // $nds = '';
+        $instructeur = $this->instructeurModel->getInstructeurInfoById($instructeurId);
 
-        // foreach ($naamDatumSterren as $naam) {
-        //     $datum = date_create($naam->DatumInDienst);
-        //     $datum = date_format($datum, 'd-m-Y'); 
-        //     $aantalSterren =    $naam->AantalSterren;
-        //     $voor =             $naam->Voornaam;
-        //     $tussen =           $naam->Tussenvoegsel;
-        //     $achter =           $naam->Achternaam;
-        // }
+        // var_dump($instructeur);
+
+        //opgalen toegewezen voerthuigen
+        $unAssignedVehicles = $this->instructeurModel->getUnassignedVehicles($instructeurId);
+
+        // var_dump($unAssignedVehicles);       // $aantalSterren = sizeof($);
+
+        $tableRows = "";
+
+        foreach ($unAssignedVehicles as $vehicles) {
+            $tableRows .= "<tr>
+                                <td>$vehicles->TypeVoertuig</td>
+                                <td>$vehicles->Type</td>
+                                <td>$vehicles->Kenteken</td>
+                                <td>$vehicles->Bouwjaar</td>
+                                <td>$vehicles->Brandstof</td>
+                                <td>$vehicles->Rijbewijscategorie</td>
+                                <td>
+                                <a href='" . URLROOT . "/Instructeur/koppelen/$instructeurId/$vehicles->Id'>Voeg toe</a>
+                                </td>
+                            </tr>";
+        }
+
 
         $data = [
             'title'         => 'Door instructeur gebruikte voertuigen',
@@ -118,8 +130,20 @@ class Instructeur extends BaseController
             'achternaam'    => $instructeur->Achternaam,
             'datumInDienst'    => $instructeur->DatumInDienst,
             'aantalSterren' => $instructeur->Aantalsterren,
-            'tableRows' => $tableRows
+            'tableRows' => $tableRows,
+            'instructeurId' => $instructeurId
         ];
-        $this->view('Instructeur/gebruikteVoertuigen', $data);
+        $this->view('Instructeur/toevoegen', $data);
+    }
+
+    public function koppelen($instructeurId, $vehicleId)
+    {
+        // var_dump($instructeurId, $vehicleId);
+
+        $this->instructeurModel->assignVehicleToInstructor($instructeurId, $vehicleId);
+
+        header("Refresh: 3; url=/Instructeur/toevoegen/$instructeurId");
+
+        echo "Gelukt!";
     }
 }
